@@ -9,9 +9,12 @@ async function main() {
   const args = process.argv.slice(2);
   let payloadPath = null;
   let outputPath = null;
+  let compileMode = false;
 
   for (let i = 0; i < args.length; i++) {
-    if (args[i] === '--payload' && args[i + 1]) {
+    if (args[i] === '--compile') {
+      compileMode = true;
+    } else if (args[i] === '--payload' && args[i + 1]) {
       payloadPath = args[i + 1];
       i++;
     } else if (args[i] === '--output' && args[i + 1]) {
@@ -20,7 +23,74 @@ async function main() {
     }
   }
 
-  // 1. Direct compilation mode (AI Agent invokes this)
+  const tmpDir = path.join(__dirname, '../tmp');
+
+  // 1. New Local Tmp folder compile mode
+  if (compileMode) {
+    const configPath = path.join(tmpDir, 'config.json');
+    if (!fs.existsSync(configPath)) {
+      console.error(`Error: Config file not found at ${configPath}. Please run the setup wizard first.`);
+      process.exit(1);
+    }
+
+    const config = JSON.parse(fs.readFileSync(configPath, 'utf8'));
+    const targetPath = config.target_path;
+    const finalOutputPath = outputPath || path.join(targetPath, 'documentation.docx');
+    const outputDir = path.dirname(finalOutputPath);
+    fs.mkdirSync(outputDir, { recursive: true });
+
+    // Assemble payload sections from individual tmp files
+    const sections = [];
+    for (const sectionId of config.sections) {
+      const sectionFile = path.join(tmpDir, `section_${sectionId}.json`);
+      if (fs.existsSync(sectionFile)) {
+        sections.push(JSON.parse(fs.readFileSync(sectionFile, 'utf8')));
+      } else {
+        console.warn(`Warning: Section file for section ${sectionId} not found. Skipping.`);
+      }
+    }
+
+    const payload = {
+      language: config.language,
+      target_audience: config.target_audience,
+      writing_style: config.writing_style,
+      target_path: targetPath,
+      document_title: `เอกสารรายละเอียดระบบงานเทคนิค (Technical Specifications) - ${path.basename(targetPath)}`,
+      sections: sections
+    };
+
+    const templatePath = path.join(__dirname, '../template.docx');
+    await generateTemplateIfMissing(templatePath);
+
+    console.log(`Starting compilation of ${payload.document_title}...`);
+    const startTime = Date.now();
+
+    try {
+      await compilePayloadToDocx(payload, templatePath, finalOutputPath);
+      const elapsedTime = ((Date.now() - startTime) / 1000).toFixed(2);
+      console.log(`Successfully compiled Word document to: ${finalOutputPath} in ${elapsedTime}s`);
+
+      // Write execution-summary.md next to documentation.docx in target path
+      await writeExecutionSummary(payload, finalOutputPath, elapsedTime, outputDir);
+
+      // Clean up all generated files in the local tmp directory and rmdir
+      console.log('Cleaning up temporary content files...');
+      if (fs.existsSync(tmpDir)) {
+        const files = fs.readdirSync(tmpDir);
+        for (const file of files) {
+          fs.unlinkSync(path.join(tmpDir, file));
+        }
+        fs.rmdirSync(tmpDir);
+      }
+      console.log('Cleanup completed successfully.');
+    } catch (err) {
+      console.error(`Compilation failed: ${err.message}`);
+      process.exit(1);
+    }
+    return;
+  }
+
+  // 2. Direct compilation mode (Kept for backwards compatibility and test runner)
   if (payloadPath) {
     if (!fs.existsSync(payloadPath)) {
       console.error(`Error: Payload file not found at ${payloadPath}`);
@@ -121,7 +191,10 @@ async function main() {
 
   // Resolve absolute path
   const absoluteTargetPath = path.resolve(response.target_path.trim());
-  const configPath = path.join(os.tmpdir(), 'document-code-config.json');
+  const tmpDir = path.join(__dirname, '../tmp');
+  fs.mkdirSync(tmpDir, { recursive: true });
+
+  const configPath = path.join(tmpDir, 'config.json');
   fs.writeFileSync(configPath, JSON.stringify({
     target_path: absoluteTargetPath,
     language: response.language,
@@ -135,7 +208,7 @@ async function main() {
 }
 
 async function writeExecutionSummary(payload, outputPath, elapsedSeconds, outputDir) {
-  const summaryPath = path.join(os.tmpdir(), 'document-code-summary.md');
+  const summaryPath = path.join(outputDir, 'execution-summary.md');
   
   // Calculate stats
   let totalDiagrams = 0;
