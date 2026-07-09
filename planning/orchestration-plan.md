@@ -24,16 +24,21 @@ The Orchestrator maps the target directory to prevent sending irrelevant files t
 
 ---
 
-## 3. Parallel Worker Dispatch & Domain Splitting
-To optimize context limits, the Orchestrator splits the target files into specific domains and dispatches work parallelly via `invoke_subagent`:
+## 3. Parallel Worker Dispatch & Dynamic Sections Guide Loading
+To optimize context limits and keep subagents highly aligned with the output requirements, the Orchestrator uses a dynamic guide-loading pattern:
 
-| Worker Subagent | Codebase Target Files | Output Scope |
-|---|---|---|
-| **Subagent A: System Architect** | Root config files (`package.json`, `tsconfig.json`, `Dockerfile`, `.env.example`, etc.) | **Section 1:** Overview & Executive Summary<br>**Section 2:** Architecture & Component Diagram |
-| **Subagent B: Code & Logic Parser** | Main source directories (`/src`, `/lib`, `/app`, core backend/frontend logic files) | **Section 3:** Code Structure & Modules<br>**Section 6:** Operational Workflows & Logic Flows |
-| **Subagent C: Data & API Specifier** | DB Schemas, models (`.prisma`, `/models`), API routes, controllers (`/routes`, `/controllers`) | **Section 4:** Database & Data Layer<br>**Section 5:** API & Integration Specs |
-| **Subagent D: DevOps & Security Auditor** | CI/CD scripts (`.github/workflows`), test suites (`/tests`, `vitest.config.ts`), security configurations | **Section 7:** Security & Compliance<br>**Section 8:** Developer Onboarding & Deployment |
-| **Subagent E: Visualizer & Tagger** | Frontend views (`/views`, `/components`, page routing, visual elements) | **Section 9:** Interactive Appendix & Screenshot Callouts |
+1. **User Section Selection:** The Orchestrator receives the list of user-selected sections (e.g., `[1, 2, 5, 9]`).
+2. **Guide Reading:** For each selected section, the Orchestrator reads the corresponding section guide file: `sections/<id>-*.md` (e.g., `sections/1-overview.md`, `sections/5-api-specifications.md`).
+3. **Context Injection:** The contents of these markdown guide files are injected directly into the subagent's prompting context, showing the worker exactly what to analyze and the required output format.
+4. **Parallel Spawning:** The Orchestrator dispatches tasks parallelly via `invoke_subagent` mapping files and guide templates to each subagent:
+
+| Worker Subagent | Codebase Target Files | Sections Guide Loaded | Output Scope |
+|---|---|---|---|
+| **Subagent A: System Architect** | Root config files (`package.json`, `tsconfig.json`, `Dockerfile`, etc.) | `sections/1-overview.md`<br>`sections/2-architecture.md` | **Section 1:** Overview & Executive Summary<br>**Section 2:** Architecture & Component Diagram |
+| **Subagent B: Code & Logic Parser** | Main source directories (`/src`, `/lib`, `/app`, core logic files) | `sections/3-code-structure.md`<br>`sections/6-operational-workflows.md` | **Section 3:** Code Structure & Modules<br>**Section 6:** Operational Workflows & Logic Flows |
+| **Subagent C: Data & API Specifier** | DB Schemas (`.prisma`, `/models`), API routes, controllers | `sections/4-database-schema.md`<br>`sections/5-api-specifications.md` | **Section 4:** Database & Data Layer<br>**Section 5:** API & Integration Specs |
+| **Subagent D: DevOps & Security Auditor** | CI/CD scripts, test suites (`/tests`), security configs | `sections/7-security-compliance.md`<br>`sections/8-developer-onboarding.md` | **Section 7:** Security & Compliance<br>**Section 8:** Developer Onboarding & Deployment |
+| **Subagent E: Visualizer & Tagger** | Frontend views (`/views`, `/components`, page routing) | `sections/9-interactive-appendix.md` | **Section 9:** Interactive Appendix & Screenshot Callouts |
 
 ---
 
