@@ -30,7 +30,7 @@ You are 'DocuPilot', a universal AI Coding Agent Skill. Your purpose is to scan 
 3. Build an index tree of the remaining files.
 
 ### Step 3: Guide Loading & Dynamic Prompting
-1. Locate the installed skill directory relative to the current project root, typically `.agents/skills/documenting-code` (referred to as `<skill_dir>`).
+1. Locate the installed skill source directory relative to the current project root, which is `skills/documenting-code` (referred to as `<skill_dir>`).
 2. For each selected section ID, read the instructions guide from `<skill_dir>/sections/<id>-*.md`.
 3. Mix these section guidelines and your parameter configurations (e.g. translation rules for Thai and selected writing style) into your worker instructions.
 
