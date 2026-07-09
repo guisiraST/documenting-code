@@ -61,7 +61,7 @@ async function main() {
       name: 'target_path',
       message: 'Enter target project directory path to document:',
       initial: '.',
-      validate: val => fs.existsSync(val) ? true : 'Directory path does not exist!'
+      validate: val => fs.existsSync(val.trim()) ? true : 'Directory path does not exist!'
     },
     {
       type: 'select',
@@ -119,7 +119,7 @@ async function main() {
   }
 
   // Resolve absolute path
-  const absoluteTargetPath = path.resolve(response.target_path);
+  const absoluteTargetPath = path.resolve(response.target_path.trim());
   const agentDir = path.join(absoluteTargetPath, '.agent');
   fs.mkdirSync(agentDir, { recursive: true });
 
