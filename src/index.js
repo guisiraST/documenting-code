@@ -191,7 +191,6 @@ async function main() {
 
   // Resolve absolute path
   const absoluteTargetPath = path.resolve(response.target_path.trim());
-  const tmpDir = path.join(__dirname, '../tmp');
   fs.mkdirSync(tmpDir, { recursive: true });
 
   const configPath = path.join(tmpDir, 'config.json');

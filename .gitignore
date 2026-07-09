@@ -8,6 +8,7 @@ test/execution-summary.md
 test/test_template.docx
 test/test_output.docx
 test/temp_template.docx
+test/simulated_documentation.docx
 
 # Local agent state
 .agent/
