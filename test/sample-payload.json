@@ -1,0 +1,27 @@
+{
+  "language": "th",
+  "target_audience": "dev_team",
+  "writing_style": "educational",
+  "target_path": "/Users/sira.h/sira_project/document-code",
+  "document_title": "เอกสารการทำงานระบบ - document-code",
+  "sections": [
+    {
+      "id": 1,
+      "title": "1. ภาพรวมระบบ (System Overview)",
+      "content": "โปรเจกต์นี้คือ document-code ซึ่งเป็นเครื่องมือสร้างเอกสารคำอธิบายโค้ดจาก repository โดยสแกนไฟล์ทั้งหมดและส่งต่อให้ subagent ทำการวิเคราะห์\nระบบรองรับการสร้างแผนผังรูปภาพและระบบปักป้าย screenshot เพื่อความสะดวกของนักพัฒนา",
+      "diagrams": [
+        {
+          "caption": "โครงสร้างการไหลของข้อมูลในระบบ",
+          "mermaid_code": "graph LR\n  A[Orchestrator] -->|Write JSON| B[Compiler]\n  B -->|Render PNG| C[Kroki API]\n  B -->|Compile| D[Word .docx]"
+        }
+      ],
+      "screenshot_tags": [
+        {
+          "target_file": "src/index.js",
+          "line_number": 15,
+          "instruction": "แคปเจอร์หน้าจอเมนูเลือกภาษาและหัวข้อเอกสารที่แสดงผลบน Terminal"
+        }
+      ]
+    }
+  ]
+}

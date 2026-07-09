@@ -34,6 +34,9 @@ async function generateTemplateIfMissing(filePath) {
           ],
           spacing: { before: 200, after: 200 },
         }),
+        new Paragraph({
+          text: "{{content}}",
+        }),
       ],
     }],
   });

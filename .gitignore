@@ -1,0 +1,18 @@
+# Dependencies
+node_modules/
+npm-debug.log*
+
+# Test output artifacts
+test/document-code-demo.docx
+test/execution-summary.md
+test/test_template.docx
+test/test_output.docx
+test/temp_template.docx
+
+# Local agent state
+.agent/
+config.json
+
+# OS specific files
+.DS_Store
+Thumbs.db
