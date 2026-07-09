@@ -1,4 +1,4 @@
-# DocuPilot Orchestration Plan
+# document-code Orchestration Plan
 
 This document outlines the orchestration workflow executed by the main AI Agent (e.g., Antigravity, Claude, or Codex) acting as the coordinator. It defines the system prompts, data flows, and constraints to partition codebase files and orchestrate specialized subagents.
 
@@ -49,7 +49,7 @@ Once all subagent tasks complete:
      "language": "th",
      "target_audience": "dev_team",
      "target_path": "/Users/sira.h/sira_project/document-code",
-     "document_title": "Project Documentation - DocuPilot",
+     "document_title": "Project Documentation - document-code",
      "sections": [
        {
          "id": 1,

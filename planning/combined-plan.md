@@ -1,8 +1,8 @@
-# DocuPilot Code Implementation Plan
+# document-code Code Implementation Plan
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Build the DocuPilot Node.js compiler application which converts a structured JSON payload of codebase analysis and Mermaid diagrams into a professionally styled Microsoft Word (.docx) file.
+**Goal:** Build the document-code Node.js compiler application which converts a structured JSON payload of codebase analysis and Mermaid diagrams into a professionally styled Microsoft Word (.docx) file.
 
 **Architecture:** The CLI application parses arguments, generates/opens a pre-styled `template.docx` base, fetches PNG diagrams from the cloud-rendered Kroki API using Mermaid.js syntax, inserts screenshot tag alerts, compiles all text/tables into the document, and generates an `execution-summary.md` audit file.
 
@@ -57,7 +57,7 @@
   {
     "name": "documenting-code",
     "version": "1.0.0",
-    "description": "DocuPilot Word Document Compiler Skill",
+    "description": "document-code Word Document Compiler Skill",
     "main": "src/index.js",
     "scripts": {
       "test": "node --test",
@@ -122,7 +122,7 @@
         properties: {},
         children: [
           new Paragraph({
-            text: "DocuPilot Ultimate Master Template",
+            text: "document-code Ultimate Master Template",
             heading: HeadingLevel.TITLE,
           }),
           new Paragraph({
@@ -409,8 +409,8 @@
   - If no payload, trigger interactive prompts via `prompts` module (ask target path, language, audience, checklists).
   - Write `execution-summary.md` detailing time, subagents summary details, Kroki outputs, and paths.
 - [ ] **Step 3: Dry run compilation manually**
-  Run: `node src/index.js --payload test/sample-payload.json --output docupilot-demo.docx`
-  Check: Verify output `docupilot-demo.docx` and `execution-summary.md` exist and contain structured information.
+  Run: `node src/index.js --payload test/sample-payload.json --output document-code-demo.docx`
+  Check: Verify output `document-code-demo.docx` and `execution-summary.md` exist and contain structured information.
 - [ ] **Step 4: Commit**
   Run:
   ```bash

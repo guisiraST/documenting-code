@@ -1,4 +1,4 @@
-# DocuPilot Subagent Design Plan
+# document-code Subagent Design Plan
 
 This document defines the specialized Subagent worker definitions, prompts, and analytical targets required to analyze sections of the codebase concurrently.
 
