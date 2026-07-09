@@ -1,5 +1,6 @@
 const fs = require('fs');
 const path = require('path');
+const os = require('os');
 const prompts = require('prompts');
 const { compilePayloadToDocx } = require('./compiler');
 const { generateTemplateIfMissing } = require('./setup');
@@ -120,10 +121,7 @@ async function main() {
 
   // Resolve absolute path
   const absoluteTargetPath = path.resolve(response.target_path.trim());
-  const agentDir = path.join(absoluteTargetPath, '.agent');
-  fs.mkdirSync(agentDir, { recursive: true });
-
-  const configPath = path.join(agentDir, 'config.json');
+  const configPath = path.join(os.tmpdir(), 'document-code-config.json');
   fs.writeFileSync(configPath, JSON.stringify({
     target_path: absoluteTargetPath,
     language: response.language,
@@ -137,7 +135,7 @@ async function main() {
 }
 
 async function writeExecutionSummary(payload, outputPath, elapsedSeconds, outputDir) {
-  const summaryPath = path.join(outputDir, 'execution-summary.md');
+  const summaryPath = path.join(os.tmpdir(), 'document-code-summary.md');
   
   // Calculate stats
   let totalDiagrams = 0;
