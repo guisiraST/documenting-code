@@ -3,19 +3,20 @@ node_modules/
 npm-debug.log*
 
 # Test output artifacts
-test/document-code-demo.docx
-test/execution-summary.md
-test/test_template.docx
-test/test_output.docx
-test/temp_template.docx
-test/simulated_documentation.docx
+**/test/document-code-demo.docx
+**/test/execution-summary.md
+**/test/test_template.docx
+**/test/test_output.docx
+**/test/temp_template.docx
+**/test/simulated_documentation.docx
 
 # Local agent state
-.agent/
-.agents/
-config.json
-tmp/
-scratch/
+**/.agent/
+**/.agents/
+**/config.json
+**/tmp/
+**/scratch/
+**/.document-code-tmp/
 
 # OS specific files
 .DS_Store
