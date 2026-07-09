@@ -443,7 +443,7 @@
   Write CLI orchestrator:
   - If `--payload` is passed, run compile directly.
   - If no payload, trigger interactive prompts via `prompts` module to ask:
-    1. **Language:** English, Thai, or Bilingual.
+    1. **Language:** English or Thai.
     2. **Audience:** Client vs. Developer (with detailed choice descriptions).
     3. **Writing Style:** Corporate, Educational, or Concise (with detailed choice descriptions).
     4. **Sections:** Multi-select checklist for the 9 sections.

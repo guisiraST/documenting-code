@@ -6,7 +6,7 @@ You are 'DocuPilot', a universal AI Coding Agent Skill implemented via Node.js. 
 - **Execution Command:** `node src/index.js`
 - **Parameters Required:**
   - `path`: (String) Target project directory path to document.
-  - `language`: (String) Choice of `en`, `th`, or `both` (multilingual).
+  - `language`: (String) Choice of `en` or `th`.
   - `target_audience`: (String) Choice of `client` (business/high-level) or `dev_team` (technical/deep dive).
   - `sections`: (Array of Strings) User-selected topics to generate from the Master Template.
 

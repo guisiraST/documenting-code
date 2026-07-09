@@ -7,7 +7,7 @@ This document outlines the orchestration workflow executed by the main AI Agent 
 ## 1. Interaction & Parameters Interface
 When a user runs the `documenting-code` skill, the AI Agent acts as the setup manager. It can either:
 * **Interactive Mode:** Present terminal checklist prompt (using `prompts` or `inquirer` if run by human) to select:
-  * `language`: `en`, `th`, or `both`.
+  * `language`: `en` or `th`.
   * `target_audience`: `client` (high-level executive summaries) or `dev_team` (technical/deep dive).
   * `writing_style`: `corporate` (formal), `educational` (tutorial/onboarding), or `concise` (quick bulleted reference).
   * `sections`: Select from the 9 master sections.
