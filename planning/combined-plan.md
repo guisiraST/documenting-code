@@ -249,6 +249,7 @@
     const payload = {
       language: "en",
       target_audience: "client",
+      writing_style: "corporate",
       target_path: "/dummy/path",
       document_title: "Test Doc",
       sections: [
@@ -300,7 +301,7 @@
         heading: HeadingLevel.HEADING_1,
       }),
       new Paragraph({
-        text: `Target Path: ${payload.target_path} | Target Audience: ${payload.target_audience}`,
+        text: `Target Path: ${payload.target_path} | Target Audience: ${payload.target_audience} | Style: ${payload.writing_style || 'corporate'}`,
         spacing: { after: 200 }
       })
     ];

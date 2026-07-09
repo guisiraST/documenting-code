@@ -8,7 +8,8 @@ This document outlines the orchestration workflow executed by the main AI Agent 
 When a user runs the `documenting-code` skill, the AI Agent acts as the setup manager. It can either:
 * **Interactive Mode:** Present terminal checklist prompt (using `prompts` or `inquirer` if run by human) to select:
   * `language`: `en`, `th`, or `both`.
-  * `target_audience`: `client` (high-level executive summaries) or `dev_team` (detailed technical specifications).
+  * `target_audience`: `client` (high-level executive summaries) or `dev_team` (technical/deep dive).
+  * `writing_style`: `corporate` (formal), `educational` (tutorial/onboarding), or `concise` (quick bulleted reference).
   * `sections`: Select from the 9 master sections.
 * **Direct Mode:** Accept parameters parsed directly from the agent tool invocation.
 
@@ -53,6 +54,7 @@ Once all subagent tasks complete:
    {
      "language": "th",
      "target_audience": "dev_team",
+     "writing_style": "corporate",
      "target_path": "/Users/sira.h/sira_project/document-code",
      "document_title": "Project Documentation - document-code",
      "sections": [
