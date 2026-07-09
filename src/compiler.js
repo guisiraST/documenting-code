@@ -14,6 +14,64 @@ const {
 } = require('docx');
 const { fetchDiagramFromKroki } = require('./kroki');
 
+function parseLineToRuns(lineText, isHeading = false, headingLevel = null) {
+  const runs = [];
+  let i = 0;
+  let currentText = "";
+  let isBold = isHeading ? true : false;
+  let isCode = false;
+
+  let defaultSize = 22;
+  if (headingLevel === HeadingLevel.HEADING_1) defaultSize = 32;
+  else if (headingLevel === HeadingLevel.HEADING_2) defaultSize = 28;
+  else if (headingLevel === HeadingLevel.HEADING_3) defaultSize = 24;
+
+  while (i < lineText.length) {
+    if (lineText.startsWith('**', i)) {
+      if (currentText) {
+        runs.push(new TextRun({
+          text: currentText,
+          font: isCode ? "Courier New" : "Arial",
+          bold: isBold,
+          size: defaultSize,
+          color: isHeading ? "000000" : (isCode ? "A52A2A" : "333333"),
+        }));
+        currentText = "";
+      }
+      isBold = isHeading ? true : !isBold;
+      i += 2;
+    } else if (lineText[i] === '`') {
+      if (currentText) {
+        runs.push(new TextRun({
+          text: currentText,
+          font: isCode ? "Courier New" : "Arial",
+          bold: isBold,
+          size: defaultSize,
+          color: isHeading ? "000000" : (isCode ? "A52A2A" : "333333"),
+        }));
+        currentText = "";
+      }
+      isCode = !isCode;
+      i += 1;
+    } else {
+      currentText += lineText[i];
+      i += 1;
+    }
+  }
+
+  if (currentText) {
+    runs.push(new TextRun({
+      text: currentText,
+      font: isCode ? "Courier New" : "Arial",
+      bold: isBold,
+      size: defaultSize,
+      color: isHeading ? "000000" : (isCode ? "A52A2A" : "333333"),
+    }));
+  }
+
+  return runs;
+}
+
 async function compilePayloadToDocx(payload, templatePath, outputPath) {
   const docChildren = [
     new Paragraph({
@@ -42,21 +100,45 @@ async function compilePayloadToDocx(payload, templatePath, outputPath) {
       spacing: { before: 240, after: 120 }
     }));
 
-    // 2. Body content paragraphs
+    // 2. Body content paragraphs parsed from Markdown
     const lines = section.content.split('\n');
     for (const line of lines) {
       if (line.trim()) {
-        docChildren.push(new Paragraph({
-          children: [
-            new TextRun({
-              text: line,
-              font: "Arial",
-              size: 22,
-              color: "333333"
-            })
-          ],
+        let cleanLine = line.trim();
+        let isBullet = false;
+        let headingLevel = null;
+
+        if (cleanLine.startsWith('* ')) {
+          isBullet = true;
+          cleanLine = cleanLine.substring(2);
+        } else if (cleanLine.startsWith('- ')) {
+          isBullet = true;
+          cleanLine = cleanLine.substring(2);
+        } else if (cleanLine.startsWith('### ')) {
+          headingLevel = HeadingLevel.HEADING_3;
+          cleanLine = cleanLine.substring(4);
+        } else if (cleanLine.startsWith('## ')) {
+          headingLevel = HeadingLevel.HEADING_2;
+          cleanLine = cleanLine.substring(3);
+        } else if (cleanLine.startsWith('# ')) {
+          headingLevel = HeadingLevel.HEADING_1;
+          cleanLine = cleanLine.substring(2);
+        }
+
+        const runs = parseLineToRuns(cleanLine, headingLevel !== null, headingLevel);
+        const pOptions = {
+          children: runs,
           spacing: { after: 120 }
-        }));
+        };
+
+        if (isBullet) {
+          pOptions.bullet = { level: 0 };
+        } else if (headingLevel) {
+          pOptions.heading = headingLevel;
+          pOptions.spacing = { before: 240, after: 120 };
+        }
+
+        docChildren.push(new Paragraph(pOptions));
       }
     }
 
