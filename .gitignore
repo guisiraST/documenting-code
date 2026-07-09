@@ -12,7 +12,10 @@ test/simulated_documentation.docx
 
 # Local agent state
 .agent/
+.agents/
 config.json
+tmp/
+scratch/
 
 # OS specific files
 .DS_Store
