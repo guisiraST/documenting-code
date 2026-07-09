@@ -442,8 +442,12 @@
 - [ ] **Step 2: Implement CLI and Parameter Parsing in `src/index.js`**
   Write CLI orchestrator:
   - If `--payload` is passed, run compile directly.
-  - If no payload, trigger interactive prompts via `prompts` module (ask target path, language, audience, checklists).
-  - Write `execution-summary.md` detailing time, subagents summary details, Kroki outputs, and paths.
+  - If no payload, trigger interactive prompts via `prompts` module to ask:
+    1. **Language:** English, Thai, or Bilingual.
+    2. **Audience:** Client vs. Developer (with detailed choice descriptions).
+    3. **Writing Style:** Corporate, Educational, or Concise (with detailed choice descriptions).
+    4. **Sections:** Multi-select checklist for the 9 sections.
+  - Write `execution-summary.md` detailing execution time, subagent details, Kroki outputs, and final document path.
 - [ ] **Step 3: Dry run compilation manually**
   Run: `node src/index.js --payload test/sample-payload.json --output document-code-demo.docx`
   Check: Verify output `document-code-demo.docx` and `execution-summary.md` exist and contain structured information.
