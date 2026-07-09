@@ -119,7 +119,16 @@
     }
     const doc = new Document({
       sections: [{
-        properties: {},
+        properties: {
+          page: {
+            margin: {
+              top: 1800, // wide margin (~1.25 inches)
+              bottom: 1800,
+              left: 1800,
+              right: 1800,
+            }
+          }
+        },
         children: [
           new Paragraph({
             text: "document-code Ultimate Master Template",
@@ -129,8 +138,9 @@
             children: [
               new TextRun({
                 text: "This is a placeholder for the documenting-code base template. Append new content below.",
-                font: "Segoe UI",
+                font: "Arial",
                 size: 24,
+                color: "333333",
               }),
             ],
           }),
@@ -355,20 +365,45 @@
         }
       }
 
-      // Insert Highlighted Screenshot Tag Alerts
+      // Insert Highlighted Screenshot Tag Callout Tables
       if (section.screenshot_tags && section.screenshot_tags.length > 0) {
+        const { Table, TableRow, TableCell, BorderStyle, WidthType } = require('docx');
         for (const tag of section.screenshot_tags) {
-          docChildren.push(new Paragraph({
-            children: [
-              new TextRun({
-                text: `[📸 DEV SCREENSHOT REQUIRED: ${tag.instruction} in ${tag.target_file}:${tag.line_number}]`,
-                bold: true,
-                color: "FF0000",
-                font: "Segoe UI",
+          docChildren.push(new Table({
+            width: {
+              size: 100,
+              type: WidthType.PERCENTAGE,
+            },
+            borders: {
+              top: { style: BorderStyle.NONE, size: 0, color: "auto" },
+              bottom: { style: BorderStyle.NONE, size: 0, color: "auto" },
+              right: { style: BorderStyle.NONE, size: 0, color: "auto" },
+              left: { style: BorderStyle.SINGLE, size: 36, color: "FF0000" }, // thick red left border
+            },
+            rows: [
+              new TableRow({
+                children: [
+                  new TableCell({
+                    shading: { fill: "F9F2F2" }, // light pinkish gray background
+                    margins: { top: 120, bottom: 120, left: 180, right: 180 },
+                    children: [
+                      new Paragraph({
+                        children: [
+                          new TextRun({
+                            text: `[📸 DEV SCREENSHOT REQUIRED: ${tag.instruction} in ${tag.target_file}:${tag.line_number}]`,
+                            bold: true,
+                            color: "FF0000",
+                            font: "Arial",
+                          })
+                        ],
+                      })
+                    ]
+                  })
+                ]
               })
-            ],
-            spacing: { before: 100, after: 100 }
+            ]
           }));
+          docChildren.push(new Paragraph({ text: "", spacing: { after: 100 } })); // small spacing after table
         }
       }
     }
