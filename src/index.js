@@ -1,3 +1,4 @@
+#!/usr/bin/env node
 const fs = require('fs');
 const path = require('path');
 const os = require('os');
@@ -23,7 +24,7 @@ async function main() {
     }
   }
 
-  const tmpDir = path.join(__dirname, '../tmp');
+  const tmpDir = path.join(process.cwd(), '.document-code-tmp');
 
   // 1. New Local Tmp folder compile mode
   if (compileMode) {
@@ -191,9 +192,10 @@ async function main() {
 
   // Resolve absolute path
   const absoluteTargetPath = path.resolve(response.target_path.trim());
-  fs.mkdirSync(tmpDir, { recursive: true });
+  const targetTmpDir = path.join(absoluteTargetPath, '.document-code-tmp');
+  fs.mkdirSync(targetTmpDir, { recursive: true });
 
-  const configPath = path.join(tmpDir, 'config.json');
+  const configPath = path.join(targetTmpDir, 'config.json');
   fs.writeFileSync(configPath, JSON.stringify({
     target_path: absoluteTargetPath,
     language: response.language,

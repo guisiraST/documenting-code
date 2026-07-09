@@ -5,7 +5,7 @@ const { execSync } = require('child_process');
 console.log('--- Start Full 9-Section Workflow Simulation (document-code Mockup) ---');
 
 const skillDir = path.join(__dirname, '..');
-const tmpDir = path.join(skillDir, 'tmp');
+const tmpDir = path.join(skillDir, '.document-code-tmp');
 const targetProjectPath = path.join(skillDir, 'test');
 const outputWordPath = path.join(targetProjectPath, 'simulated_documentation.docx');
 

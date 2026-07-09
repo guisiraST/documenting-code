@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "description": "document-code Word Document Compiler Skill",
   "main": "src/index.js",
+  "bin": "./src/index.js",
   "scripts": {
     "test": "node --test",
     "setup": "node src/setup.js"
