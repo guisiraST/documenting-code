@@ -2,7 +2,7 @@ const fs = require('fs');
 const path = require('path');
 const { execSync } = require('child_process');
 
-console.log('--- Start Full 9-Section Workflow Simulation ---');
+console.log('--- Start Full 9-Section Workflow Simulation (document-code Mockup) ---');
 
 const skillDir = path.join(__dirname, '..');
 const tmpDir = path.join(skillDir, 'tmp');
@@ -26,7 +26,7 @@ console.log('Creating local tmp folder in skill...');
 fs.mkdirSync(tmpDir, { recursive: true });
 
 // 3. Write simulated config.json with all 9 sections
-console.log('Writing simulated config.json with all 9 sections...');
+console.log('Writing simulated config.json for document-code mockup...');
 fs.writeFileSync(path.join(tmpDir, 'config.json'), JSON.stringify({
   target_path: targetProjectPath,
   language: "th",
@@ -35,96 +35,96 @@ fs.writeFileSync(path.join(tmpDir, 'config.json'), JSON.stringify({
   sections: ["1", "2", "3", "4", "5", "6", "7", "8", "9"]
 }, null, 2));
 
-// 4. Write mock files for all 9 sections
+// 4. Write mock files for all 9 sections detailing document-code itself
 console.log('Writing all 9 simulated section content files...');
 
 const mockSections = [
   {
     id: 1,
-    title: "1. ภาพรวมระบบ (System Overview)",
-    content: "ระบบ 'marine-excellence' เป็นแอปพลิเคชันระบบหลังบ้าน (Backend) สำหรับประมวลผลเอกสารอัตโนมัติ\nช่วยวิเคราะห์ ตรวจสอบข้อมูล และคัดกรองข้อมูลจากเอกสารรูปแบบต่างๆ เช่น PDF และ Excel",
+    title: "1. ภาพรวมระบบและวัตถุประสงค์ (System Overview & Goals)",
+    content: "ระบบ 'document-code' เป็นเครื่องมือสร้างเอกสารเชิงเทคนิคอัตโนมัติจากซอร์สโค้ดในโปรเจกต์ (Automated CLI Document Compiler)\nโดยมีเป้าหมายเพื่อช่วยลดภาระงานของนักพัฒนาในการเขียนเอกสารอธิบายการทำงานของระบบหลังบ้าน โครงสร้างการเชื่อมต่อ และการปักหมุดจุดตรวจสอบโค้ดแบบไม่ต้องสร้างความยุ่งเหยิงในไดเรกทอรีของโปรเจกต์เป้าหมาย",
     diagrams: [],
     screenshot_tags: []
   },
   {
     id: 2,
     title: "2. การออกแบบสถาปัตยกรรมระบบ (Architecture & Component Design)",
-    content: "สถาปัตยกรรมหลักได้รับการพัฒนาแบบ MVC/REST API โดยแยกเลเยอร์ Router, Controller, และ Business Service ชัดเจนเพื่อความยืดหยุ่นในการขยายระบบคู่ขนาน",
+    content: "สถาปัตยกรรมทำงานในลักษณะ Orchestrator-Worker โดยแบ่งขั้นตอนการรันออกเป็น 3 ขั้นตอนหลักคือ:\n1. Interactive Setup Wizard สำหรับรวบรวมค่าพารามิเตอร์ความต้องการจากผู้ใช้งานและบันทึกใส่ tmp/config.json\n2. Codebase Scanner & AI Analysis สำหรับการอ่านซอร์สโค้ดและส่งต่อให้ Parallel Subagents ทำการสรุปผลและเขียนเก็บข้อมูลรายหัวข้อลงในโฟลเดอร์ tmp/ ของ Skill\n3. Patch Document Compiler สำหรับอ่านข้อมูลจากโฟลเดอร์ tmp/ มารวมกันคอมไพล์เป็นไฟล์ Word (.docx) และทำความสะอาดเคลียร์ไฟล์ชั่วคราวทิ้งทั้งหมด",
     diagrams: [
       {
-        caption: "ความเชื่อมโยง Component ภายในระบบ",
-        mermaid_code: "graph TD\n  Client --> Router[FastAPI Router]\n  Router --> Controller[API Controllers]\n  Controller --> Service[Business Services]"
+        caption: "สถาปัตยกรรมการไหลของข้อมูลและการประมวลผลเอกสาร",
+        mermaid_code: "graph TD\n  Wizard[Interactive Setup Wizard] -->|Write config.json| Tmp[Skill tmp/ directory]\n  Subagents[Parallel Worker Agents] -->|Write section_*.json| Tmp\n  Tmp -->|Compile & Patch| Compiler[Docx Patch Compiler]\n  Compiler -->|Output| Word[Word Document .docx]\n  Compiler -->|Triggers| Cleanup[Temporary Files Cleanup]"
       }
     ],
     screenshot_tags: []
   },
   {
     id: 3,
-    title: "3. โครงสร้างซอร์สโค้ดและโมดูล (Code Structure & Modules)",
-    content: "ระบบมีการจัดระเบียบโครงสร้างไดเรกทอรีที่ชัดเจนแบ่งตามหน้าที่การประมวลผล:\n* main.py - ไฟล์หลักในการเชื่อมต่อระบบหลังบ้าน\n* routes/ - จัดเก็บไฟล์โมดูลสำหรับจัดการ API Endpoints\n* business/ - โฟลเดอร์จัดเก็บโมดูลการประมวลผลกฎเชิงธุรกิจ",
+    title: "3. โครงสร้างซอร์สโค้ดและโมดูลระบบ (Code Structure & Modules)",
+    content: "การจัดหมวดหมู่โมดูลยึดหลักแยกความรับผิดชอบอย่างเป็นเอกเทศ (Single Responsibility Principle):\n* `src/index.js` - โมดูลหลักสำหรับประมวลผลคำสั่ง CLI พารามิเตอร์ และการรันเมนู Interactive Prompt\n* `src/setup.js` - ทำหน้าที่ตรวจสอบและสร้างเอกสารแม่แบบสไตล์เริ่มต้น (Minimalist template.docx)\n* `src/kroki.js` - ไคลเอนต์ติดต่อ Cloud Kroki API เพื่อขอรับไฟล์แผนผัง PNG แบบออฟไลน์\n* `src/compiler.js` - ตัวจัดการเขียนเอกสาร Word ผ่านการแพตช์ตัวแปร `{{content}}` ในแม่แบบเริ่มต้น",
     diagrams: [],
     screenshot_tags: []
   },
   {
     id: 4,
-    title: "4. ฐานข้อมูลและโครงสร้างข้อมูลระบบ (Database & Data Layer)",
-    content: "ระบบมีการจัดเก็บและพักข้อมูลที่ได้จากการสกัดข้อมูลจากตารางโครงสร้าง PDF ชั่วคราว เพื่อเตรียมจัดส่งเข้าสู่โมดูลคัดกรองกฎความสอดคล้อง (Business Rule Matcher)",
+    title: "4. โครงสร้างฐานข้อมูลและการจัดการสถานะชั่วคราว (Data Model & State)",
+    content: "เพื่อความเป็นระเบียบและไม่รบกวนโปรเจกต์ที่นำมาจัดทำเอกสาร ระบบเลือกบันทึกข้อมูลและวิเคราะห์แบบไร้ฐานข้อมูล (Stateless Execution) โดยบันทึกสถานะลงไฟล์โครงสร้าง JSON ชั่วคราวภายใต้โฟลเดอร์ `tmp/` ของ Skill เท่านั้น",
     diagrams: [
       {
-        caption: "รูปแบบโครงสร้างการไหลของข้อมูลการแปลงเอกสาร (Data Extraction Model)",
-        mermaid_code: "erDiagram\n  UploadFile ||--o{ PDF_Process : contains\n  PDF_Process ||--|| JSON_Output : generates"
+        caption: "โครงสร้างความสัมพันธ์ข้อมูลชั่วคราว (Temporary Metadata Relationships)",
+        mermaid_code: "erDiagram\n  CONFIG_JSON ||--o{ SECTION_JSON : configures\n  SECTION_JSON ||--|| WORD_DOCUMENT : compiles"
       }
     ],
     screenshot_tags: []
   },
   {
     id: 5,
-    title: "5. ข้อกำหนดการเชื่อมต่อระบบ API (API Specifications)",
-    content: "แอปพลิเคชันให้บริการ REST API ในการทำ Verify เอกสารเรือทางกฎเกณฑ์ผ่าน Endpoints สำคัญ:\n* POST /api/ai/verify_doc_marine - รันแบบปกติโดยรับค่าพาธไฟล์\n* POST /api/ai/verify_doc_marine_uploadfile_optimize - รันวิเคราะห์ข้อมูลคู่ขนานขยายขีดความสามารถ",
+    title: "5. ข้อกำหนดการรันคำสั่ง CLI (CLI API Specifications)",
+    content: "ระบบสนับสนุนการรันคำสั่งใน 2 โหมดการทำงานผ่าน Command Line:\n1. โหมด Wizard: `node src/index.js` (เปิดหน้ากากเมนูเลือกตั้งค่า)\n2. โหมด Compile: `node src/index.js --compile --output <path>` (คอมไพล์เอกสาร Word จาก tmp และล้างข้อมูลชั่วคราวอัตโนมัติ)",
     diagrams: [],
     screenshot_tags: []
   },
   {
     id: 6,
-    title: "6. กลไกการทำงานภายใน (Operational Workflows & Logic)",
-    content: "การประมวลผลแบบคู่ขนานผ่าน asyncio.gather ช่วยให้อัปโหลดไฟล์และสกัดกฎเชิงธุรกิจพร้อมกันเป็นสเต็ปขนานกันก่อนจัดรวมความถูกต้องของเอกสาร",
+    title: "6. ขั้นตอนการประมวลผลเอกสารหลังบ้าน (Internal Operational Workflows)",
+    content: "ขั้นตอนการคอมไพล์เอกสารอธิบายการทำงานทำงานอย่างเป็นลำดับขั้นเพื่อตรวจสอบความถูกต้องของข้อมูลทั้งหมดก่อนจัดเก็บและล้างข้อมูล:",
     diagrams: [
       {
-        caption: "กระบวนการสกัดข้อมูลเอกสารคู่ขนาน (Asynchronous Extraction Workflow)",
-        mermaid_code: "sequenceDiagram\n  Client->>Router: Upload Request\n  par Process Q88\n    Router->>Parser: Q88 Processing\n  and Process SIRE\n    Router->>Parser: SIRE Processing\n  end\n  Parser-->>Router: Merged Result\n  Router-->>Client: Response Data"
+        caption: "ลำดับการคอมไพล์และการจัดการไฟล์ชั่วคราว (Compilation & Cleanup Flow)",
+        mermaid_code: "sequenceDiagram\n  MainAgent->>Compiler: Run with --compile flag\n  Compiler->>Compiler: Read tmp/config.json\n  loop For each section\n    Compiler->>Compiler: Read tmp/section_*.json\n  end\n  Compiler->>Kroki: Fetch PNG diagrams\n  Compiler->>Compiler: Patch template.docx\n  Compiler->>MainAgent: Write output Word & summary\n  Compiler->>Compiler: Delete all tmp/ folder files"
       }
     ],
     screenshot_tags: []
   },
   {
     id: 7,
-    title: "7. ความปลอดภัยและมาตรฐานของระบบ (Security & Compliance)",
-    content: "ระบบใช้กลไกการรักษาความปลอดภัยโดยเปิดใช้งาน CORS Middleware อนุญาตเฉพาะแหล่งที่มาขององค์กรที่ปลอดภัยในกลุ่ม domain *.pttgrp.com และ *.pttdigital.com เท่านั้น",
+    title: "7. ความปลอดภัยและการรันแบบปิด (Security & Privacy)",
+    content: "เอกสารถูกสร้างขึ้นภายในเครื่องโดยไม่มีการส่งรหัสโครงสร้างหรือไฟล์โค้ดไปวิเคราะห์นอกระบบ แผนผังภาพใช้การ Deflate รหัสของแผนผังส่งไปเรนเดอร์รูปภาพผ่าน API สาธารณะของ Kroki ซึ่งไม่สามารถแกะโครงสร้างโค้ดกลับมาได้ ทำให้ปลอดภัยและรักษาความเป็นส่วนตัวของซอร์สโค้ดระบบสูงสุด",
     diagrams: [],
     screenshot_tags: []
   },
   {
     id: 8,
-    title: "8. คู่มือเริ่มต้นการพัฒนาระบบและการติดตั้ง (Developer Onboarding & Deployment)",
-    content: "การติดตั้งระบบเพื่อรันพัฒนาโลคอล:\n1. pip install -r requirements.txt\n2. uvicorn main:app --reload --port 8000\n3. docker build -t marine-excellence .",
+    title: "8. คู่มือเริ่มต้นสำหรับนักพัฒนาและติดตั้ง (Developer Onboarding)",
+    content: "ขั้นตอนการนำไปติดตั้งใช้งานในระบบของตัวแทนพัฒนา:\n1. ตรวจสอบ Node.js (เวอร์ชัน 18 ขึ้นไป)\n2. ทำการติดตั้งด้วยคำสั่งเพิ่มทักษะ:\n   ```bash\n   npx skills add https://github.com/guisiraST/documenting-code --skill documenting-code\n   ```\n3. รันคำสั่งทดสอบระบบโลคอล: `npm test`",
     diagrams: [],
     screenshot_tags: []
   },
   {
     id: 9,
-    title: "9. ภาคผนวกและปักหมุดภาพ (Appendix & Screenshots)",
-    content: "สำหรับการตรวจสอบความสอดคล้องในการรันระบบให้ทำการบันทึกภาพหน้าจอการทำงานเพื่อความสมบูรณ์ของรายงาน:",
+    title: "9. ภาคผนวกตรวจสอบภาพหน้าจอระบบ (Interactive Screenshots)",
+    content: "ป้ายตรวจสอบ screenshot ที่ฝังไว้เพื่อให้นักพัฒนาปักรูปภาพหน้าจอเมนูที่รันจริงในระบบและแสดงผลการตั้งค่า:",
     diagrams: [],
     screenshot_tags: [
       {
-        target_file: "src/ai/main.py",
-        line_number: 7,
-        instruction: "บันทึกภาพหน้าจอหน้ารายการเอกสาร API Docs ที่เปิดผ่าน /api/ai/docs"
+        target_file: "src/index.js",
+        line_number: 12,
+        instruction: "บันทึกภาพหน้าจอการเรียกใช้งาน Setup Wizard ที่แสดงผลบนหน้าจอ Terminal"
       },
       {
-        target_file: "src/ai/main.py",
-        line_number: 19,
-        instruction: "บันทึกภาพหน้าจอ CORS Middleware configuration เพื่อยืนยันความปลอดภัยในการสื่อสาร"
+        target_file: "src/index.js",
+        line_number: 40,
+        instruction: "บันทึกภาพหน้าจอขณะที่คอมไพเลอร์ทำการแสดงผลลัพธ์สำเร็จการคอมไพล์เอกสารสำเร็จรูป"
       }
     ]
   }
