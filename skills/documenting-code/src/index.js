@@ -65,7 +65,7 @@ async function main() {
       const cleanId = String(sectionId).replace(/[^a-zA-Z0-9]/g, '');
       const sectionFile = path.join(tmpDir, `section_${cleanId}.json`);
       if (fs.existsSync(sectionFile)) {
-        sections.push(JSON.parse(fs.readFileSync(sectionFile, 'utf8')));
+        sections.push(readAndRepairSectionJson(sectionFile));
       } else {
         console.warn(`Warning: Section file for section ${sectionId} not found. Skipping.`);
       }
@@ -327,6 +327,54 @@ function calculateStats(targetPath) {
 
   walk(targetPath);
   return { files_discovered: filesDiscovered, files_ignored: filesIgnored };
+}
+
+function readAndRepairSectionJson(filePath) {
+  const content = fs.readFileSync(filePath, 'utf8');
+  try {
+    return JSON.parse(content);
+  } catch (parseErr) {
+    console.warn(`[document-code] Warning: Invalid JSON syntax detected in ${path.basename(filePath)}. Attempting automatic quote repair...`);
+    
+    // Substring-based repair for unescaped double quotes inside the "content" field value
+    const contentKey = '"content": "';
+    const startIndex = content.indexOf(contentKey);
+    if (startIndex !== -1) {
+      const valStartIndex = startIndex + contentKey.length;
+      let valEndIndex = -1;
+      const markers = ['",\n  "diagrams"', '",\r\n  "diagrams"', '",\n  "screenshot_tags"', '",\r\n  "screenshot_tags"', '"\n}', '"\r\n}'];
+      
+      for (const marker of markers) {
+        const idx = content.indexOf(marker, valStartIndex);
+        if (idx !== -1) {
+          valEndIndex = idx;
+          break;
+        }
+      }
+
+      if (valEndIndex !== -1) {
+        const rawContent = content.substring(valStartIndex, valEndIndex);
+        const escapedContent = rawContent
+          .replace(/\\"/g, '"') // remove existing escapes to avoid double-escaping
+          .replace(/"/g, '\\"'); // escape all double quotes
+          
+        const repairedJson = content.substring(0, valStartIndex) + escapedContent + content.substring(valEndIndex);
+        
+        try {
+          const parsed = JSON.parse(repairedJson);
+          console.log(`[document-code] Successfully repaired and parsed ${path.basename(filePath)}!`);
+          return parsed;
+        } catch (repairErr) {
+          // Fall through to error handler if repair fails
+        }
+      }
+    }
+
+    console.error(`\n❌ Error: Failed to parse JSON file at ${filePath}.`);
+    console.error(`Syntax details: ${parseErr.message}`);
+    console.error(`Common cause: Unescaped double quotes (") inside text fields. Please use single quotes (') instead.`);
+    process.exit(1);
+  }
 }
 
 main().catch(console.error);

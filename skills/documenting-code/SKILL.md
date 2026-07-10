@@ -36,6 +36,7 @@ You are 'DocuPilot', a universal AI Coding Agent Skill. Your purpose is to scan 
 
 ### Step 4: Parallel Subagent Execution & Temp Outputs
 Spawn specialized Subagents in parallel (e.g., using `invoke_subagent` if in Antigravity/Claude Code, or asynchronous logical branches) to analyze files matching their domain. Each subagent must write its completed section JSON output directly into `./.document-code-tmp/section_<id>.json` relative to the current project root, using the format `{ "id": id, "title": "...", "content": "...", "diagrams": [...], "screenshot_tags": [...] }`:
+*   **CRITICAL FORMATTING RULE:** Inside the JSON string fields (especially `"content"`), subagents **MUST NOT** output raw unescaped double quotes (`"`). If you need to write quotes or highlights in the text content, you **must use single quotes (`'`)** (e.g., `'No data'`) to prevent JSON formatting errors.
 * **Subagent A (Architect):** Processes root config files to write `./.document-code-tmp/section_1.json` and `section_2.json`.
 * **Subagent B (Code Logic):** Processes source folder logic to write `./.document-code-tmp/section_3.json` and `section_6.json`.
 * **Subagent C (API & DB):** Processes schemas and controller routes to write `./.document-code-tmp/section_4.json` and `section_5.json`.
