@@ -82,6 +82,105 @@ function isTableSeparator(line) {
   return isTableRow(line) && /^\|[\s\-\:\|]+$/.test(trimmed);
 }
 
+function processMarkdownText(text, docChildren) {
+  const lines = text.split('\n');
+  let lineIdx = 0;
+  while (lineIdx < lines.length) {
+    const line = lines[lineIdx];
+    if (line.trim()) {
+      // Parse markdown tables if detected
+      if (isTableRow(line) && lineIdx + 1 < lines.length && isTableSeparator(lines[lineIdx + 1])) {
+        const tableLines = [];
+        while (lineIdx < lines.length && isTableRow(lines[lineIdx])) {
+          tableLines.push(lines[lineIdx]);
+          lineIdx++;
+        }
+
+        const rows = [];
+        for (const tblLine of tableLines) {
+          if (isTableSeparator(tblLine)) continue;
+          
+          const cells = tblLine.split('|')
+            .map(c => c.trim())
+            .slice(1, -1);
+
+          rows.push(cells);
+        }
+
+        if (rows.length > 0) {
+          const docxRows = rows.map((cells, rowIndex) => {
+            const isHeader = rowIndex === 0;
+            return new TableRow({
+              children: cells.map(cellText => {
+                return new TableCell({
+                  shading: isHeader ? { fill: "EEEEEE" } : undefined,
+                  margins: { top: 100, bottom: 100, left: 150, right: 150 },
+                  borders: {
+                    top: { style: BorderStyle.SINGLE, size: 4, color: "CCCCCC" },
+                    bottom: { style: BorderStyle.SINGLE, size: 4, color: "CCCCCC" },
+                    left: { style: BorderStyle.SINGLE, size: 4, color: "CCCCCC" },
+                    right: { style: BorderStyle.SINGLE, size: 4, color: "CCCCCC" },
+                  },
+                  children: [
+                    new Paragraph({
+                      children: parseLineToRuns(cellText, isHeader),
+                      spacing: { after: 0 }
+                    })
+                  ]
+                });
+              })
+            });
+          });
+
+          docChildren.push(new Table({
+            width: { size: 100, type: WidthType.PERCENTAGE },
+            rows: docxRows
+          }));
+          docChildren.push(new Paragraph({ text: "", spacing: { after: 120 } }));
+        }
+        continue;
+      }
+
+      let cleanLine = line.trim();
+      let isBullet = false;
+      let headingLevel = null;
+
+      if (cleanLine.startsWith('* ')) {
+        isBullet = true;
+        cleanLine = cleanLine.substring(2);
+      } else if (cleanLine.startsWith('- ')) {
+        isBullet = true;
+        cleanLine = cleanLine.substring(2);
+      } else if (cleanLine.startsWith('### ')) {
+        headingLevel = HeadingLevel.HEADING_3;
+        cleanLine = cleanLine.substring(4);
+      } else if (cleanLine.startsWith('## ')) {
+        headingLevel = HeadingLevel.HEADING_2;
+        cleanLine = cleanLine.substring(3);
+      } else if (cleanLine.startsWith('# ')) {
+        headingLevel = HeadingLevel.HEADING_1;
+        cleanLine = cleanLine.substring(2);
+      }
+
+      const runs = parseLineToRuns(cleanLine, headingLevel !== null, headingLevel);
+      const pOptions = {
+        children: runs,
+        spacing: { after: 120 }
+      };
+
+      if (isBullet) {
+        pOptions.bullet = { level: 0 };
+      } else if (headingLevel) {
+        pOptions.heading = headingLevel;
+        pOptions.spacing = { before: 240, after: 120 };
+      }
+
+      docChildren.push(new Paragraph(pOptions));
+    }
+    lineIdx++;
+  }
+}
+
 async function compilePayloadToDocx(payload, templatePath, outputPath) {
   const docChildren = [
     new Paragraph({
@@ -110,102 +209,53 @@ async function compilePayloadToDocx(payload, templatePath, outputPath) {
       spacing: { before: 240, after: 120 }
     }));
 
-    // 2. Body content paragraphs parsed from Markdown (with native Word Table support)
-    const lines = section.content.split('\n');
-    let lineIdx = 0;
-    while (lineIdx < lines.length) {
-      const line = lines[lineIdx];
-      if (line.trim()) {
-        // Parse markdown tables if detected
-        if (isTableRow(line) && lineIdx + 1 < lines.length && isTableSeparator(lines[lineIdx + 1])) {
-          const tableLines = [];
-          while (lineIdx < lines.length && isTableRow(lines[lineIdx])) {
-            tableLines.push(lines[lineIdx]);
-            lineIdx++;
-          }
+    // 2. Body content paragraphs parsed from Markdown (with native Word Table & Inline Mermaid support)
+    const content = section.content || "";
+    const parts = content.split('```mermaid');
+    
+    // Process the first text chunk
+    processMarkdownText(parts[0], docChildren);
 
-          const rows = [];
-          for (const tblLine of tableLines) {
-            if (isTableSeparator(tblLine)) continue;
-            
-            const cells = tblLine.split('|')
-              .map(c => c.trim())
-              .slice(1, -1);
+    // Process subsequent inline Mermaid code chunks
+    for (let k = 1; k < parts.length; k++) {
+      const part = parts[k];
+      const endIdx = part.indexOf('```');
+      if (endIdx !== -1) {
+        const mermaidCode = part.substring(0, endIdx).trim();
+        const remainingText = part.substring(endIdx + 3);
 
-            rows.push(cells);
-          }
-
-          if (rows.length > 0) {
-            const docxRows = rows.map((cells, rowIndex) => {
-              const isHeader = rowIndex === 0;
-              return new TableRow({
-                children: cells.map(cellText => {
-                  return new TableCell({
-                    shading: isHeader ? { fill: "EEEEEE" } : undefined,
-                    margins: { top: 100, bottom: 100, left: 150, right: 150 },
-                    borders: {
-                      top: { style: BorderStyle.SINGLE, size: 4, color: "CCCCCC" },
-                      bottom: { style: BorderStyle.SINGLE, size: 4, color: "CCCCCC" },
-                      left: { style: BorderStyle.SINGLE, size: 4, color: "CCCCCC" },
-                      right: { style: BorderStyle.SINGLE, size: 4, color: "CCCCCC" },
-                    },
-                    children: [
-                      new Paragraph({
-                        children: parseLineToRuns(cellText, isHeader),
-                        spacing: { after: 0 }
-                      })
-                    ]
-                  });
-                })
-              });
-            });
-
-            docChildren.push(new Table({
-              width: { size: 100, type: WidthType.PERCENTAGE },
-              rows: docxRows
-            }));
-            docChildren.push(new Paragraph({ text: "", spacing: { after: 120 } }));
-          }
-          continue;
+        // Render this inline Mermaid diagram
+        try {
+          const imageBuffer = await fetchDiagramFromKroki(mermaidCode);
+          docChildren.push(new Paragraph({
+            children: [
+              new ImageRun({
+                data: imageBuffer,
+                transformation: {
+                  width: 450,
+                  height: 250,
+                },
+              }),
+            ],
+            spacing: { before: 120, after: 120 }
+          }));
+        } catch (err) {
+          docChildren.push(new Paragraph({
+            text: `[⚠️ Diagram Render Error: Kroki API Unavailable]`,
+            spacing: { before: 120, after: 60 }
+          }));
+          docChildren.push(new Paragraph({
+            text: mermaidCode,
+            spacing: { after: 120 }
+          }));
         }
 
-        let cleanLine = line.trim();
-        let isBullet = false;
-        let headingLevel = null;
-
-        if (cleanLine.startsWith('* ')) {
-          isBullet = true;
-          cleanLine = cleanLine.substring(2);
-        } else if (cleanLine.startsWith('- ')) {
-          isBullet = true;
-          cleanLine = cleanLine.substring(2);
-        } else if (cleanLine.startsWith('### ')) {
-          headingLevel = HeadingLevel.HEADING_3;
-          cleanLine = cleanLine.substring(4);
-        } else if (cleanLine.startsWith('## ')) {
-          headingLevel = HeadingLevel.HEADING_2;
-          cleanLine = cleanLine.substring(3);
-        } else if (cleanLine.startsWith('# ')) {
-          headingLevel = HeadingLevel.HEADING_1;
-          cleanLine = cleanLine.substring(2);
-        }
-
-        const runs = parseLineToRuns(cleanLine, headingLevel !== null, headingLevel);
-        const pOptions = {
-          children: runs,
-          spacing: { after: 120 }
-        };
-
-        if (isBullet) {
-          pOptions.bullet = { level: 0 };
-        } else if (headingLevel) {
-          pOptions.heading = headingLevel;
-          pOptions.spacing = { before: 240, after: 120 };
-        }
-
-        docChildren.push(new Paragraph(pOptions));
+        // Process the rest of the text in this part
+        processMarkdownText(remainingText, docChildren);
+      } else {
+        // Fallback for missing closing tag
+        processMarkdownText(part, docChildren);
       }
-      lineIdx++;
     }
 
     // 3. Diagrams embedding (with fallback)
