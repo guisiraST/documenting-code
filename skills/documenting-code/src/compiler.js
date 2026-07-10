@@ -72,6 +72,16 @@ function parseLineToRuns(lineText, isHeading = false, headingLevel = null) {
   return runs;
 }
 
+function isTableRow(line) {
+  const trimmed = line.trim();
+  return trimmed.startsWith('|') && trimmed.endsWith('|') && trimmed.length > 2;
+}
+
+function isTableSeparator(line) {
+  const trimmed = line.trim();
+  return isTableRow(line) && /^\|[\s\-\:\|]+$/.test(trimmed);
+}
+
 async function compilePayloadToDocx(payload, templatePath, outputPath) {
   const docChildren = [
     new Paragraph({
@@ -100,10 +110,65 @@ async function compilePayloadToDocx(payload, templatePath, outputPath) {
       spacing: { before: 240, after: 120 }
     }));
 
-    // 2. Body content paragraphs parsed from Markdown
+    // 2. Body content paragraphs parsed from Markdown (with native Word Table support)
     const lines = section.content.split('\n');
-    for (const line of lines) {
+    let lineIdx = 0;
+    while (lineIdx < lines.length) {
+      const line = lines[lineIdx];
       if (line.trim()) {
+        // Parse markdown tables if detected
+        if (isTableRow(line) && lineIdx + 1 < lines.length && isTableSeparator(lines[lineIdx + 1])) {
+          const tableLines = [];
+          while (lineIdx < lines.length && isTableRow(lines[lineIdx])) {
+            tableLines.push(lines[lineIdx]);
+            lineIdx++;
+          }
+
+          const rows = [];
+          for (const tblLine of tableLines) {
+            if (isTableSeparator(tblLine)) continue;
+            
+            const cells = tblLine.split('|')
+              .map(c => c.trim())
+              .slice(1, -1);
+
+            rows.push(cells);
+          }
+
+          if (rows.length > 0) {
+            const docxRows = rows.map((cells, rowIndex) => {
+              const isHeader = rowIndex === 0;
+              return new TableRow({
+                children: cells.map(cellText => {
+                  return new TableCell({
+                    shading: isHeader ? { fill: "EEEEEE" } : undefined,
+                    margins: { top: 100, bottom: 100, left: 150, right: 150 },
+                    borders: {
+                      top: { style: BorderStyle.SINGLE, size: 4, color: "CCCCCC" },
+                      bottom: { style: BorderStyle.SINGLE, size: 4, color: "CCCCCC" },
+                      left: { style: BorderStyle.SINGLE, size: 4, color: "CCCCCC" },
+                      right: { style: BorderStyle.SINGLE, size: 4, color: "CCCCCC" },
+                    },
+                    children: [
+                      new Paragraph({
+                        children: parseLineToRuns(cellText, isHeader),
+                        spacing: { after: 0 }
+                      })
+                    ]
+                  });
+                })
+              });
+            });
+
+            docChildren.push(new Table({
+              width: { size: 100, type: WidthType.PERCENTAGE },
+              rows: docxRows
+            }));
+            docChildren.push(new Paragraph({ text: "", spacing: { after: 120 } }));
+          }
+          continue;
+        }
+
         let cleanLine = line.trim();
         let isBullet = false;
         let headingLevel = null;
@@ -140,6 +205,7 @@ async function compilePayloadToDocx(payload, templatePath, outputPath) {
 
         docChildren.push(new Paragraph(pOptions));
       }
+      lineIdx++;
     }
 
     // 3. Diagrams embedding (with fallback)
