@@ -62,7 +62,8 @@ async function main() {
     // Assemble payload sections from individual tmp files
     const sections = [];
     for (const sectionId of config.sections) {
-      const sectionFile = path.join(tmpDir, `section_${sectionId}.json`);
+      const cleanId = String(sectionId).replace(/[^a-zA-Z0-9]/g, '');
+      const sectionFile = path.join(tmpDir, `section_${cleanId}.json`);
       if (fs.existsSync(sectionFile)) {
         sections.push(JSON.parse(fs.readFileSync(sectionFile, 'utf8')));
       } else {
