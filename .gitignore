@@ -21,3 +21,8 @@ npm-debug.log*
 # OS specific files
 .DS_Store
 Thumbs.db
+
+# Unrelated skill metadata and conversation logs
+**/planning/
+**/AGENT.md
+**/*conversation.md
