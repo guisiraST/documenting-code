@@ -2,6 +2,25 @@
 const fs = require('fs');
 const path = require('path');
 const os = require('os');
+
+// Auto-install dependencies if missing
+try {
+  require('prompts');
+  require('docx');
+  require('axios');
+  require('pako');
+} catch (err) {
+  console.log('\n[document-code] Missing required dependencies. Running npm install inside the skill directory...');
+  const { execSync } = require('child_process');
+  try {
+    execSync('npm install', { cwd: path.join(__dirname, '..'), stdio: 'inherit' });
+    console.log('[document-code] Dependencies installed successfully!\n');
+  } catch (installErr) {
+    console.error('[document-code] Error: Failed to install dependencies automatically. Please run "npm install" inside the skill directory manually.');
+    process.exit(1);
+  }
+}
+
 const prompts = require('prompts');
 const { compilePayloadToDocx } = require('./compiler');
 const { generateTemplateIfMissing } = require('./setup');
@@ -51,13 +70,17 @@ async function main() {
       }
     }
 
+    // Calculate file stats automatically
+    const stats = calculateStats(targetPath);
+
     const payload = {
       language: config.language,
       target_audience: config.target_audience,
       writing_style: config.writing_style,
       target_path: targetPath,
       document_title: `เอกสารรายละเอียดระบบงานเทคนิค (Technical Specifications) - ${path.basename(targetPath)}`,
-      sections: sections
+      sections: sections,
+      stats: stats
     };
 
     const templatePath = path.join(__dirname, '../template.docx');
@@ -73,7 +96,10 @@ async function main() {
 
       // Write execution-summary.md next to documentation.docx in target path
       await writeExecutionSummary(payload, finalOutputPath, elapsedTime, outputDir);
-
+    } catch (err) {
+      console.error(`Compilation failed: ${err.message}`);
+      process.exit(1);
+    } finally {
       // Clean up all generated files in the local tmp directory and rmdir
       console.log('Cleaning up temporary content files...');
       if (fs.existsSync(tmpDir)) {
@@ -84,9 +110,6 @@ async function main() {
         fs.rmdirSync(tmpDir);
       }
       console.log('Cleanup completed successfully.');
-    } catch (err) {
-      console.error(`Compilation failed: ${err.message}`);
-      process.exit(1);
     }
     return;
   }
@@ -270,6 +293,39 @@ ${tagsList.map(t => `* \`[📸 DEV SCREENSHOT REQUIRED: ${t.instruction} in ${t.
 
   fs.writeFileSync(summaryPath, mdContent);
   console.log(`Execution summary written to: ${summaryPath}`);
+}
+
+function calculateStats(targetPath) {
+  let filesDiscovered = 0;
+  let filesIgnored = 0;
+  const ignoreList = ['node_modules', '.git', '.next', 'dist', 'build', '.gemini', 'coverage', '.document-code-tmp', '.agents', 'tmp'];
+
+  function walk(dir) {
+    if (!fs.existsSync(dir)) return;
+    const list = fs.readdirSync(dir);
+    for (const file of list) {
+      const fullPath = path.join(dir, file);
+      const isIgnored = ignoreList.some(ignore => file === ignore || fullPath.includes(path.sep + ignore + path.sep));
+      
+      let stat;
+      try {
+        stat = fs.statSync(fullPath);
+      } catch (e) {
+        continue;
+      }
+
+      if (isIgnored) {
+        filesIgnored++;
+      } else if (stat.isDirectory()) {
+        walk(fullPath);
+      } else {
+        filesDiscovered++;
+      }
+    }
+  }
+
+  walk(targetPath);
+  return { files_discovered: filesDiscovered, files_ignored: filesIgnored };
 }
 
 main().catch(console.error);
